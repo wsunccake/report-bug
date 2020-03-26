@@ -7,16 +7,21 @@ from robot.api import ExecutionResult
 
 class ReportParser:
     _tests = []
+    _suites = []
 
     def __init__(self, input_xml):
         self.result = ExecutionResult(input_xml)
-        self.all_test_cases = self._flatten_test_case(self.result)
-        self.failed_test_cases = [tc for tc in self.all_test_cases if tc.status in set(['FAIL'])]
-        self.passed_test_cases = [tc for tc in self.all_test_cases if tc.status in set(['PASS'])]
+        self.all_tests, self.all_suites = self._flatten_test_case(self.result)
+        self.failed_tests = [tc for tc in self.all_tests if tc.status in set(['FAIL'])]
+        self.passed_tests = [tc for tc in self.all_tests if tc.status in set(['PASS'])]
+
+        self.failed_suites = [s for s in self.all_suites if s.status in set(['FAIL'])]
+        self.passed_suites = [s for s in self.all_suites if s.status in set(['PASS'])]
 
     def _flatten_test_case(self, result):
         if not (getattr(result, 'suites', None) is None):
             for suite in result.suites:
+                self._suites.append(suite)
                 self._flatten_test_case(suite)
 
         if not (getattr(result, 'suite', None) is None):
@@ -25,7 +30,24 @@ class ReportParser:
         for test in getattr(result, 'tests', []):
             self._tests.append(test)
 
-        return self._tests
+        return self._tests, self._suites
+
+
+class TestEntity:
+    def __init__(self, test):
+        self.test = test
+        self.failed_keywords = []
+
+    def __str__(self):
+        return f'test case: {self.test.name}, [{self.test.status}]'
+
+
+class SuiteEntity:
+    def __init__(self, suite):
+        self.suite = suite
+        self.tests = []
+        self.failed_tests = []
+        self.failed_keywords = []
 
 
 class ParserTool:
@@ -35,9 +57,45 @@ class ParserTool:
             for kw in test_keyword.keywords.all:
                 ParserTool.get_failed_test_keyword(kw, results)
             if len(test_keyword.keywords.all) == 0:
-                results.append((test_keyword.name, test_keyword.messages))
+                results.append(test_keyword)
                 return
         return
+
+    @staticmethod
+    def analyze_tests(test_cases):
+        test_entities = []
+
+        for tc in test_cases:
+            test_entity = TestEntity(tc)
+
+            for kw in tc.keywords:
+                failed_results = []
+                if not kw.passed:
+                    ParserTool.get_failed_test_keyword(kw, failed_results)
+                    test_entity.failed_keywords = failed_results
+
+            test_entities.append(test_entity)
+
+        return test_entities
+
+    @staticmethod
+    def analyze_suites(suites):
+        suite_entities = []
+
+        for suite in suites:
+            suite_entity = SuiteEntity(suite)
+
+            for kw in suite.keywords:
+                if not kw.passed:
+                    suite_entity.failed_keywords.append(kw)
+
+            for tc in suite.tests:
+                if not tc.status:
+                    suite_entity.failed_tests.append(tc)
+
+            suite_entities.append(suite)
+
+        return suite_entities
 
     # @staticmethod
     # def show_testcase(testcase):
@@ -123,41 +181,38 @@ class ParserTool:
         return report_timestamp
 
     @staticmethod
-    def simple_report(test_cases, options=[]):
+    def text_report(test_entities, options=[]):
         passed_number = 0
         failed_number = 0
         testcase_lines = []
         start_timestamp = float("inf")
         end_timestamp = - float("inf")
 
-        for tc in test_cases:
-            if tc.passed:
+        for entity in test_entities:
+            if entity.test.passed:
                 passed_number += 1
             else:
                 failed_number += 1
 
             if 'with_testcase' in options:
-                testcase_lines.append('{:60.60s}\t[{}]'.format(tc.name, tc.status))
+                testcase_lines.append('{:60.60s}\t[{}]'.format(entity.test.name, entity.test.status))
 
                 if 'with_time' in options:
-                    testcase_lines[-1] = testcase_lines[-1] + '\t{}\t{}'.format(tc.starttime, tc.endtime)
+                    testcase_lines[-1] = testcase_lines[-1] + '\t{}\t{}'.format(entity.test.starttime,
+                                                                                entity.test.endtime)
 
                 if 'with_error_message' in options:
-                    if not tc.passed:
-                        testcase_lines[-1] = testcase_lines[-1] + '\n{}\n'.format(tc.message)
+                    if not entity.test.passed:
+                        testcase_lines[-1] = testcase_lines[-1] + '\n{}\n'.format(entity.test.message)
 
                 if 'with_failed_keyword' in options:
-                    for kw in tc.keywords:
-                        failed_results = []
-                        if not kw.passed:
-                            ParserTool.get_failed_test_keyword(kw, failed_results)
-                            failed_kw = failed_results[0][0]
-                            failed_message = '\n'.join(m.message for m in failed_results[0][1])
-                            testcase_lines[-1] = testcase_lines[-1] + '\n{}\n{}\n'.format(failed_kw, failed_message)
+                    for kw in entity.failed_keywords:
+                        message = '\n'.join(m.message for m in kw.messages)
+                        testcase_lines[-1] = testcase_lines[-1] + '\n{}\n{}\n'.format(kw.name, message)
 
             if 'with_time' in options:
-                start_timestamp = min(start_timestamp, ParserTool.report_time_to_timestamp(tc.starttime))
-                end_timestamp = max(end_timestamp, ParserTool.report_time_to_timestamp(tc.endtime))
+                start_timestamp = min(start_timestamp, ParserTool.report_time_to_timestamp(entity.test.starttime))
+                end_timestamp = max(end_timestamp, ParserTool.report_time_to_timestamp(entity.test.endtime))
 
         try:
             total_number = passed_number + failed_number
@@ -167,18 +222,19 @@ class ParserTool:
         except Exception as e:
             print(e)
 
-        report_content = 'total TCs: {:d}, passed TCs: {:d}, passed rate: {:.1f} %'.format(total_number, passed_number,
-                                                                                           passed_rate)
-
-        if 'with_time' in options:
-            s = datetime.datetime.fromtimestamp(start_timestamp).strftime('%Y%m%d %H:%M:%S')
-            e = datetime.datetime.fromtimestamp(end_timestamp).strftime('%Y%m%d %H:%M:%S')
-            report_content = report_content + '\t{}\t{}'.format(s, e)
-
+        report_content = ''
+        if 'with_pass_rate' in options:
+            report_content = 'total TCs: {:d}, passed TCs: {:d}, passed rate: {:.1f} %'.format(total_number,
+                                                                                               passed_number,
+                                                                                               passed_rate)
         if testcase_lines:
             report_content = '\n'.join(testcase_lines) + '\n' + report_content
 
         return report_content
+
+    @staticmethod
+    def suite_report(suite_entitiess):
+        pass
 
 
 if __name__ == '__main__':
@@ -188,6 +244,11 @@ if __name__ == '__main__':
     # print(report_parser.passed_test_cases)
 
     # opts = ['with_testcase', 'with_error_message']
-    opts = ['with_testcase', 'with_failed_keyword']
-    simple_report = ParserTool.simple_report(report_parser.failed_test_cases, opts)
-    print(simple_report)
+    # opts = ['with_testcase', 'with_failed_keyword', 'with_error_message', 'with_time', 'with_pass_rate']
+    opts = ['with_testcase', 'with_failed_keyword', 'with_error_message', 'with_pass_rate']
+
+    test_entities = ParserTool.analyze_tests(report_parser.all_tests)
+    text = ParserTool.text_report(test_entities, opts)
+    print(text)
+
+    # suite_entities = ParserTool.analyze_suites(report_parser.all_suites)
