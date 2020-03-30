@@ -171,6 +171,27 @@ class ParserTool:
     #     return result_dict
 
     @staticmethod
+    def extract_test_keyword_message(test_entities):
+        lines = []
+
+        for t in test_entities:
+            test = t.test
+            keywords = [k.name for k in t.failed_keywords]
+            keyword_messages = [k.messages for k in t.failed_keywords]
+
+            failed_messages = []
+            for items in keyword_messages:
+                message = ''
+                for i in items:
+                    message += '\n' + i.message
+                failed_messages.append(message)
+
+            lines.append({'test': test.name, 'test_message': test.message, 'keywords': keywords,
+                          'keyword_messages': failed_messages})
+
+        return lines
+
+    @staticmethod
     def find_parent_attribute(testcase, parent_key, attribute):
         pass
 
@@ -233,7 +254,7 @@ class ParserTool:
         return report_content
 
     @staticmethod
-    def suite_report(suite_entitiess):
+    def suite_report(suite_entities):
         pass
 
 
@@ -243,11 +264,11 @@ if __name__ == '__main__':
     # print(report_parser.failed_test_cases)
     # print(report_parser.passed_test_cases)
 
+    test_entities = ParserTool.analyze_tests(report_parser.all_tests)
+
     # opts = ['with_testcase', 'with_error_message']
     # opts = ['with_testcase', 'with_failed_keyword', 'with_error_message', 'with_time', 'with_pass_rate']
     opts = ['with_testcase', 'with_failed_keyword', 'with_error_message', 'with_pass_rate']
-
-    test_entities = ParserTool.analyze_tests(report_parser.all_tests)
     text = ParserTool.text_report(test_entities, opts)
     print(text)
 
