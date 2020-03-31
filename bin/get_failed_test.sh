@@ -9,5 +9,5 @@ fi
 
 export PYTHONPATH=$REPORT_BUG_HOME/lib:$PYTHONPATH
 
-echo "get_failed_test.py $@"
+#echo "get_failed_test.py $@"
 ${REPORT_BUG_HOME}/bin/get_failed_test.py "$@"

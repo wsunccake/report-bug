@@ -51,6 +51,8 @@ class SuiteEntity:
 
 
 class ParserTool:
+    DEFAULT_REASON_ID = 0
+
     @staticmethod
     def get_failed_test_keyword(test_keyword, results):
         if not test_keyword.passed:
@@ -186,8 +188,9 @@ class ParserTool:
                     message += '\n' + i.message
                 failed_messages.append(message)
 
-            lines.append({'test': test.name, 'test_message': test.message, 'keywords': keywords,
-                          'keyword_messages': failed_messages})
+            lines.append({'test': test.name, 'test_message': test.message,
+                          'keywords': keywords, 'keyword_messages': failed_messages,
+                          'reason_id': ParserTool.DEFAULT_REASON_ID})
 
         return lines
 
