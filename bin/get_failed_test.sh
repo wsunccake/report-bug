@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 if [ -z $REPORT_BUG_HOME ]; then
 #    echo "please setup environment variable REPORT_BUG_HOME"

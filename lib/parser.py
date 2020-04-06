@@ -51,7 +51,7 @@ class SuiteEntity:
 
 
 class ParserTool:
-    DEFAULT_REASON_ID = 0
+    DEFAULT_REASON_ID = -1
 
     @staticmethod
     def get_failed_test_keyword(test_keyword, results):
