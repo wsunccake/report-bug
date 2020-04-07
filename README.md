@@ -35,8 +35,8 @@ linux:report-bug # bin/run_py.sh predict_bug.py test.json train nb
 
 ```bash
 # pull image
-linux:~ # docker pull python:3.6.10-alpine
-linux:~ # docker run -itd -v <report-bug-path>:/app -v /data:/data -u $UID --name report-bug python:3.6.10-alpine
+linux:~ # docker pull python:3.7.7-slim-stretch
+linux:~ # docker run -itd -v <report-bug-path>:/app -v /data:/data -u $UID --name report-bug python:3.7.7-slim-stretch
 
 # install package
 linux:~ # docker exec -it -u 0 report-bug pip install -r /app/requirements.txt
