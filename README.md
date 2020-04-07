@@ -26,7 +26,8 @@ nltk.download()'
 ## run command
 
 ```bash
-linux:report-bug # bin/get_failed_test.sh /tmp/output.xml
+linux:report-bug # bin/run_py.sh get_failed_test.py output.xml
+linux:report-bug # bin/run_py.sh predict_bug.py test.json train nb
 ```
 
 
@@ -44,7 +45,8 @@ linux:~ # docker exec -it -u 0 report-bug pip install -r /app/requirements.txt
 linux:~ # mv output.xml /data
 
 # run app
-linux:~ # docker exec -it report-bug /app/bin/get_failed_test.sh /data/output.xml
+linux:~ # docker exec -it report-bug /app/bin/run_py.sh get_failed_test.py /data/output.xml
+linux:~ # docker exec -it report-bug /app/bin/run_py.sh get_failed_test.py /data/test.json /data/train nb
 ```
 
 

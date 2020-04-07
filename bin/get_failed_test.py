@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import json
-import fire
 
+from fire import Fire
 from parser import ReportParser
 from parser import ParserTool
 
@@ -15,4 +15,4 @@ def run(input_xml):
 
 
 if __name__ == '__main__':
-    fire.Fire(run)
+    Fire(run)
