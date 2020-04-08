@@ -40,6 +40,7 @@ linux:~ # docker run -itd -v <report-bug-path>:/app -v /data:/data -u $UID --nam
 
 # install package
 linux:~ # docker exec -it -u 0 report-bug pip install -r /app/requirements.txt
+linux:~ # docker exec -it -u 0 report-bug python -m nltk.downloader [-d /usr/local/share/nltk_data] all
 
 # copy xml
 linux:~ # mv output.xml /data
