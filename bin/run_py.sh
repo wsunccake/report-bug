@@ -7,5 +7,5 @@ fi
 
 export PYTHONPATH=$REPORT_BUG_HOME/lib:$PYTHONPATH
 
-echo "${REPORT_BUG_HOME}/bin/$@"
+#echo "${REPORT_BUG_HOME}/bin/$@"
 ${REPORT_BUG_HOME}/bin/$@
