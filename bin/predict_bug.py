@@ -9,7 +9,10 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 from featurer import Token, Classifier
 
-CLASSIFIER_MODEL = {'svm': Classifier.svm, 'nb': Classifier.naive_bayes, 'knn': Classifier.k_mean}
+CLASSIFIER_MODEL = {'svm': Classifier.svm,
+                    'nb': Classifier.naive_bayes,
+                    'knn': Classifier.k_mean,
+                    'nn': Classifier.rocchio}
 
 
 class TrainingModel:
@@ -90,13 +93,17 @@ class TrainingModel:
         x_test_tfidf = self.tfidf_transformer.transform(x_test_counts)
         predicted = self.classifier.predict(x_test_tfidf)
 
-        return predicted
+        probability = None
+        if self.model not in ['nn']:
+            probability = self.classifier.predict_proba(x_test_tfidf)
+
+        return predicted, probability
 
 
 def predict_bug(test_file, train_folder, model):
     training_model = TrainingModel(train_folder, model)
     training_model.train()
-    predicted = training_model.predict(test_file)
+    predicted, probability = training_model.predict(test_file)
     print(predicted)
 
 

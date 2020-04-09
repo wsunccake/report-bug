@@ -84,7 +84,7 @@ class Classifier:
     @staticmethod
     def svm(train, target):
         from sklearn import svm
-        classifier = svm.SVC(kernel='linear').fit(train, target)
+        classifier = svm.SVC(kernel='linear', probability=True).fit(train, target)
         return classifier
 
 
