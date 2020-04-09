@@ -83,8 +83,26 @@ class Classifier:
 
     @staticmethod
     def svm(train, target):
-        from sklearn import svm
-        classifier = svm.SVC(kernel='linear', probability=True).fit(train, target)
+        from sklearn.svm import SVC
+        classifier = SVC(kernel='linear', probability=True).fit(train, target)
+        return classifier
+
+    @staticmethod
+    def logistic_regression(train, target):
+        from sklearn.linear_model import LogisticRegression
+        classifier = LogisticRegression().fit(train, target)
+        return classifier
+
+    @staticmethod
+    def random_forest(train, target):
+        from sklearn.ensemble import RandomForestClassifier
+        classifier = RandomForestClassifier().fit(train, target)
+        return classifier
+
+    @staticmethod
+    def extreme_gradient_boosting(train, target):
+        from xgboost import XGBClassifier
+        classifier = XGBClassifier().fit(train, target)
         return classifier
 
 

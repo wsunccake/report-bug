@@ -12,7 +12,10 @@ from featurer import Token, Classifier
 CLASSIFIER_MODEL = {'svm': Classifier.svm,
                     'nb': Classifier.naive_bayes,
                     'knn': Classifier.k_mean,
-                    'nn': Classifier.rocchio}
+                    'nn': Classifier.rocchio,
+                    'lr': Classifier.logistic_regression,
+                    'rf': Classifier.random_forest,
+                    'xgb': Classifier.extreme_gradient_boosting}
 
 
 class TrainingModel:

@@ -60,3 +60,11 @@ error message: "urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_F
 ```bash
 mac:~ $ open /Applications/Python\ 3.7/Install\ Certificates.command
 ```
+
+2. mac os install xgboot
+
+xgboot require OpenMP
+
+```bash
+max:~ $ brew install libomp
+```
